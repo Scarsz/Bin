@@ -27,7 +27,7 @@ public class UploadTest {
         file = new HashMap<>();
         file.put("name", b64(encrypt(key, "stack.txtd".getBytes(StandardCharsets.UTF_8))));
         file.put("content", b64(encrypt(key, ExceptionUtils.getStackTrace(new Throwable()).getBytes(StandardCharsets.UTF_8))));
-        file.put("type", 1);
+        file.put("type", "text/plain");
         files.add(file);
         file = new HashMap<>();
         file.put("name", b64(encrypt(key, "lorem-ipsum.log".getBytes(StandardCharsets.UTF_8))));
