@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>?</title>
+    <style type="text/css">
+        * {
+            color: white;
+        }
+        body {
+            background-color: $background;
+            background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='60px' width='600px'><text x='0' y='50' fill='$foreground.replace("#", "")' font-weight='bold' font-family='Helvetica' font-style='italic' font-size='60'>1-800-WHOAREYOU</text></svg>");
+        }
+    </style>
+</head>
+<body>
+</body>
+</html>
