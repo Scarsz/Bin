@@ -3,7 +3,7 @@ Bin is an AES 128/256-bit encrypted, GitHub Gists-inspired, anonymous
 pastebin. All data on the server is encrypted such that the operators
 of the server have no knowledge of what data is stored on it. This
 tool was designed to be a replacement for my old debug information
-server that [DiscordSRV](https://github.com/DiscordSRV/DioscrdSRV)
+server that [DiscordSRV](https://github.com/DiscordSRV/DiscordSRV)
 uses. The problem with the old system was that while I am by no means
 a malicious actor, it raises a security concern that I was in
 possession of lots of debug information from the plugin and the
@@ -52,8 +52,8 @@ POST /post
         {
             "name": base64(aes("file-name.txt")),
             "content": base64(aes("file content")),
-            "description": base64(aes("optional file description"))
-            "type": base64(aes("MIME type- if not defined, view page defaults to application/octet-stream"))
+            "description": base64(aes("optional file description")),
+            "type": "MIME type- if not defined, view page defaults to application/octet-stream"
         },
         ...
     ]
