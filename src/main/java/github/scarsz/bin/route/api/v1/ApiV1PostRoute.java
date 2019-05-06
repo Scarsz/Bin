@@ -17,7 +17,7 @@ public class ApiV1PostRoute implements Route {
     public Object handle(Request request, Response response) throws Exception {
         if (StringUtils.isBlank(request.body())) return halt(400, "{\"error\":{\"type\":\"BlankBodyException\", \"message\":\"No content received\"}}");
         Map json = Server.getInstance().getGson().fromJson(request.body(), Map.class);
-        System.out.println("input: " + ((Map) ((List) json.get("files")).get(0)).get("type"));
+//        System.out.println("input: " + ((Map) ((List) json.get("files")).get(0)).get("type"));
 
         long expiration = ((long) (double) json.getOrDefault("expiration", (double) Server.getInstance().getConfig().getDefaultExpiration()));
         byte[] description = StringUtils.isNotBlank((String) json.get("description")) ? Base64.getDecoder().decode((String) json.get("description")) : null;
