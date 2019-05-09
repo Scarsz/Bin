@@ -3,12 +3,14 @@ package github.scarsz.bin.main;
 import com.github.kevinsawicki.http.HttpRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -27,7 +29,7 @@ public class UploadTest {
         file = new HashMap<>();
         file.put("name", b64(encrypt(key, "stack.txtd".getBytes(StandardCharsets.UTF_8))));
         file.put("content", b64(encrypt(key, ExceptionUtils.getStackTrace(new Throwable()).getBytes(StandardCharsets.UTF_8))));
-        file.put("type", "text/plain");
+        file.put("type", b64(encrypt(key, "text/plain".getBytes(StandardCharsets.UTF_8))));
         files.add(file);
         file = new HashMap<>();
         file.put("name", b64(encrypt(key, "lorem-ipsum.log".getBytes(StandardCharsets.UTF_8))));
@@ -49,8 +51,8 @@ public class UploadTest {
                 "Proin quis ligula quis dui facilisis lobortis sed lacinia neque.\n" +
                 "Nam et est laoreet, imperdiet nunc semper, ornare augue.\n" +
                 "Nunc fermentum nulla vel turpis ornare porttitor.").getBytes(StandardCharsets.UTF_8))));
-        file.put("type", "text/plain");
-//        files.add(file);
+        file.put("type", b64(encrypt(key, "text/plain".getBytes(StandardCharsets.UTF_8))));
+        files.add(file);
         file = new HashMap<>();
         file.put("name", b64(encrypt(key, "more".getBytes(StandardCharsets.UTF_8))));
         file.put("content", b64(encrypt(key, "nerd nerd nerd nerd nerd nerd nerd".getBytes(StandardCharsets.UTF_8))));

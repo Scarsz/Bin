@@ -55,7 +55,7 @@ public class Server {
                 "(" +
                 "    id uuid default random_uuid() not null," +
                 "    bin uuid not null," +
-                "    type varchar(100) default null," +
+                "    type blob default null," +
                 "    name blob not null," +
                 "    description varchar(100) default null," +
                 "    content blob not null," +

@@ -168,10 +168,8 @@
                     info("Decrypting file " + f.id);
                     let name = aesjs.utils.utf8.fromBytes(decrypt(keyBytes, f.name));
                     let content = decrypt(keyBytes, f.content);
-                    let type = f.type;// ? aesjs.utils.utf8.fromBytes(decrypt(keyBytes, f.type)) : null;
+                    let type = f.type ? aesjs.utils.utf8.fromBytes(decrypt(keyBytes, f.type)) : null;
                     let description = f.description ? decrypt(f.description) : "";
-
-                    console.log(name+" "+f.type+" "+type);
 
                     if (aesjs.utils.utf8.fromBytes(name) === '') {
                         throw new Error("Decrypted name was blank. Your decryption key is probably incorrect.");

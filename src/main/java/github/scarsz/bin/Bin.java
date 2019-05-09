@@ -85,18 +85,19 @@ public class Bin {
         }
     }
 
-    public File addFile(byte[] name, byte[] content, String type) throws SQLException {
+    public File addFile(byte[] name, byte[] content, byte[] type) throws SQLException {
         return addFile(id, name, content, type);
     }
 
-    public static File addFile(UUID bin, byte[] name, byte[] content, String type) throws SQLException {
+    public static File addFile(UUID bin, byte[] name, byte[] content, byte[] type) throws SQLException {
         if (name == null || name.length == 0) throw new IllegalArgumentException("File must have a name");
         if (name.length % 16 != 0) throw new IllegalArgumentException("File name must be divisible by 16");
         if (content == null || content.length == 0) throw new IllegalArgumentException("File \"" + Arrays.toString(name) + "\" must have content");
         if (content.length % 16 != 0) throw new IllegalArgumentException("File content must be divisible by 16");
+        if (type != null && type.length % 16 != 0) throw new IllegalArgumentException("File type must be divisible by 16");
         PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("INSERT INTO files (bin, type, name, content) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
         statement.setObject(1, bin);
-        statement.setString(2, type);
+        statement.setBlob(2, type != null ? new ByteArrayInputStream(type) : null);
         statement.setBlob(3, new ByteArrayInputStream(name));
         statement.setBlob(4, new ByteArrayInputStream(content));
         statement.executeUpdate();
@@ -218,8 +219,8 @@ public class Bin {
             statement.setString(1, id.toString());
             ResultSet result = statement.executeQuery();
             if (result.next()) {
-                type = result.getString("type");
-                return type;
+                byte[] type = result.getBytes("type");
+                return type != null ? Base64.getEncoder().encodeToString(type) : null;
             } else {
                 throw new BinNotFoundException(id);
             }
