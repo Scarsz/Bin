@@ -62,16 +62,13 @@ public class Server {
                 "    constraint files_pk primary key (id)" +
                 ");").executeUpdate();
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        });
+        }));
 
         staticFileLocation("/static/");
         port(port);
