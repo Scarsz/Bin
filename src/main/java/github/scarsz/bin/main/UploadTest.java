@@ -3,14 +3,12 @@ package github.scarsz.bin.main;
 import com.github.kevinsawicki.http.HttpRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -27,9 +25,10 @@ public class UploadTest {
         List<Map<String, Object>> files = new LinkedList<>();
         Map<String, Object> file;
         file = new HashMap<>();
-        file.put("name", b64(encrypt(key, "stack.txtd".getBytes(StandardCharsets.UTF_8))));
+        file.put("name", b64(encrypt(key, "stack.txt".getBytes(StandardCharsets.UTF_8))));
         file.put("content", b64(encrypt(key, ExceptionUtils.getStackTrace(new Throwable()).getBytes(StandardCharsets.UTF_8))));
         file.put("type", b64(encrypt(key, "text/plain".getBytes(StandardCharsets.UTF_8))));
+        file.put("description", b64(encrypt(key, "files can have descriptions too".getBytes(StandardCharsets.UTF_8))));
         files.add(file);
         file = new HashMap<>();
         file.put("name", b64(encrypt(key, "lorem-ipsum.log".getBytes(StandardCharsets.UTF_8))));
@@ -56,11 +55,13 @@ public class UploadTest {
         file = new HashMap<>();
         file.put("name", b64(encrypt(key, "more".getBytes(StandardCharsets.UTF_8))));
         file.put("content", b64(encrypt(key, "nerd nerd nerd nerd nerd nerd nerd".getBytes(StandardCharsets.UTF_8))));
-        file.put("type", "application/octet-stream");
-//        files.add(file);
+        file.put("type", b64(encrypt(key, "application/octet-stream".getBytes(StandardCharsets.UTF_8))));
+        file.put("description", b64(encrypt(key, "text file that's being described as an octet stream".getBytes(StandardCharsets.UTF_8))));
+        files.add(file);
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("files", files);
+        payload.put("description", b64(encrypt(key, "bins can have descriptions".getBytes(StandardCharsets.UTF_8))));
         String json = GSON.toJson(payload);
         System.out.println(json);
 

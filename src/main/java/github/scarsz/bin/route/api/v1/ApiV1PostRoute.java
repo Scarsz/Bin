@@ -26,8 +26,9 @@ public class ApiV1PostRoute implements Route {
         for (Map file : new LinkedList<>((ArrayList<Map>) json.get("files"))) {
             byte[] nameBytes = Base64.getDecoder().decode((String) file.get("name"));
             byte[] contentBytes = Base64.getDecoder().decode((String) file.get("content"));
-            byte[] typeBytes = file.get("type") != null ? Base64.getDecoder().decode((String) file.get("type")) : null;
-            bin.addFile(nameBytes, contentBytes, typeBytes);
+            byte[] typeBytes = StringUtils.isNotBlank((String) file.get("type")) ? Base64.getDecoder().decode((String) file.get("type")) : null;
+            byte[] descriptionBytes = StringUtils.isNotBlank((String) file.get("description")) ? Base64.getDecoder().decode((String) file.get("description")) : null;
+            bin.addFile(nameBytes, contentBytes, typeBytes, descriptionBytes);
         }
 
         Map<String, Object> payload = new HashMap<>();

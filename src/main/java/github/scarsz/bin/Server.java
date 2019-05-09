@@ -48,7 +48,7 @@ public class Server {
                 "    hits int default 0 not null," +
                 "    time bigint default DATEDIFF('SECOND', DATE '1970-01-01', CURRENT_TIMESTAMP()) * 1000 not null," +
                 "    expiration bigint default null," +
-                "    description clob default null," +
+                "    description blob default null," +
                 "    constraint bins_pk primary key (id)" +
                 ");").executeUpdate();
         connection.prepareStatement("create table if not exists files" +
@@ -57,7 +57,7 @@ public class Server {
                 "    bin uuid not null," +
                 "    type blob default null," +
                 "    name blob not null," +
-                "    description varchar(100) default null," +
+                "    description blob default null," +
                 "    content blob not null," +
                 "    constraint files_pk primary key (id)" +
                 ");").executeUpdate();

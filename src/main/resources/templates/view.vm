@@ -81,7 +81,7 @@
     let json = {};
 
     function decrypt(key, b64data) {
-        info("Decrypting " + b64data/*.substr(0, 32)*/ + "... [" + base64js.byteLength(b64data) + " bytes]");
+        info("Decrypting " + b64data.substr(0, 32) + "... [" + base64js.byteLength(b64data) + " bytes]");
         const bytes = base64js.toByteArray(b64data);
         const iv = bytes.subarray(0, 16);
         const data = bytes.subarray(16);
@@ -156,10 +156,11 @@
             const data = await ky.default('/v1/' + id + ".json");
             data.json().then(response => {
                 json = response;
+                console.log(json);
                 bin.id = json.id;
                 bin.hits = json.hits;
                 bin.time = json.time;
-                bin.description = json.description;
+                bin.description = aesjs.utils.utf8.fromBytes(decrypt(keyBytes, json.description));
 
                 info("Received " + json.files.length + " files");
                 document.querySelector("#status").innerHTML = "Received " + json.files.length + " files";
@@ -169,7 +170,7 @@
                     let name = aesjs.utils.utf8.fromBytes(decrypt(keyBytes, f.name));
                     let content = decrypt(keyBytes, f.content);
                     let type = f.type ? aesjs.utils.utf8.fromBytes(decrypt(keyBytes, f.type)) : null;
-                    let description = f.description ? decrypt(f.description) : "";
+                    let description = f.description ? aesjs.utils.utf8.fromBytes(decrypt(keyBytes, f.description)) : null;
 
                     if (aesjs.utils.utf8.fromBytes(name) === '') {
                         throw new Error("Decrypted name was blank. Your decryption key is probably incorrect.");
@@ -191,6 +192,10 @@
 
                 $("#status").remove();
                 let container = document.querySelector("#container");
+                let headerDiv = $("<div id=\"header\" class=\"file\"></div>");
+                headerDiv.html("<h2>Bin <code>" + bin.id + "</code></h2>\n" +
+                        (bin.description ? ("<h3>Description <code>" + filterXSS(bin.description) + "</code></h3>\n") : ""));
+                $("#container").append(headerDiv);
                 for (let i = 0; i < bin.files.length; i++) {
                     let file = bin.files[i];
                     let div = $("<div class='file' id='" + i + "'></div>");
@@ -202,12 +207,11 @@
                             "</p>";
 
                     let known = true;
-                    console.log(file.type);
                     if (file.type != null) {
-                        if (file.type.startsWith('text')) {
+                        if (file.type.startsWith('text/')) {
                             // {"whitelist": {}, "stripIgnoreTag": true}
                             div.html(header + "<pre><code>" + aesjs.utils.utf8.fromBytes(file.content) + "</code></pre>");
-                        } else if (file.type.startsWith('audio')) {
+                        } else if (file.type.startsWith('audio/')) {
                             div.html(header + "<audio controls src=\"data:" + filterXSS(file.type) + ";base64," + base64js.fromByteArray(file.content) + "\" /></code></pre>");
                         } else {
                             known = false;

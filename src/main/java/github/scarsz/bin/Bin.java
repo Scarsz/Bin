@@ -6,10 +6,11 @@ import net.jodah.expiringmap.ExpiringMap;
 import spark.Request;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -37,12 +38,10 @@ public class Bin {
     }
 
     public static Bin create(long expiration, byte[] description) throws SQLException {
-        InputStreamReader stream = description != null ? new InputStreamReader(new ByteArrayInputStream(description)) : null;
         PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("INSERT INTO bins (expiration, description) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
         statement.setLong(1, expiration);
-        statement.setClob(2, stream);
+        statement.setBlob(2, description != null ? new ByteArrayInputStream(description) : null);
         statement.executeUpdate();
-        try { if (stream != null) stream.close(); } catch (IOException e) { e.printStackTrace(); }
         ResultSet result = statement.getGeneratedKeys();
         if (result.next()) {
             return retrieve((UUID) result.getObject("id"));
@@ -85,21 +84,23 @@ public class Bin {
         }
     }
 
-    public File addFile(byte[] name, byte[] content, byte[] type) throws SQLException {
-        return addFile(id, name, content, type);
+    public File addFile(byte[] name, byte[] content, byte[] type, byte[] description) throws SQLException {
+        return addFile(id, name, content, type, description);
     }
 
-    public static File addFile(UUID bin, byte[] name, byte[] content, byte[] type) throws SQLException {
+    public static File addFile(UUID bin, byte[] name, byte[] content, byte[] type, byte[] description) throws SQLException {
         if (name == null || name.length == 0) throw new IllegalArgumentException("File must have a name");
         if (name.length % 16 != 0) throw new IllegalArgumentException("File name must be divisible by 16");
         if (content == null || content.length == 0) throw new IllegalArgumentException("File \"" + Arrays.toString(name) + "\" must have content");
         if (content.length % 16 != 0) throw new IllegalArgumentException("File content must be divisible by 16");
         if (type != null && type.length % 16 != 0) throw new IllegalArgumentException("File type must be divisible by 16");
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("INSERT INTO files (bin, type, name, content) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+        if (description != null && description.length % 16 != 0) throw new IllegalArgumentException("File description must be divisible by 16");
+        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("INSERT INTO files (bin, type, name, content, description) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
         statement.setObject(1, bin);
         statement.setBlob(2, type != null ? new ByteArrayInputStream(type) : null);
         statement.setBlob(3, new ByteArrayInputStream(name));
         statement.setBlob(4, new ByteArrayInputStream(content));
+        statement.setBlob(5, description != null ? new ByteArrayInputStream(description) : null);
         statement.executeUpdate();
         ResultSet result = statement.getGeneratedKeys();
         if (result.next()) {
@@ -157,6 +158,18 @@ public class Bin {
         return expiration;
     }
 
+    public String getDescription() throws SQLException {
+        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select description from bins where id = ?");
+        statement.setString(1, id.toString());
+        ResultSet result = statement.executeQuery();
+        if (result.next()) {
+            byte[] bytes = result.getBytes("description");
+            return bytes != null ? Base64.getEncoder().encodeToString(bytes) : null;
+        } else {
+            throw new BinNotFoundException(id);
+        }
+    }
+
     private <T> T getAttribute(String column) throws SQLException {
         PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select " + column + " from bins where id = ?");
         statement.setString(1, id.toString());
@@ -191,6 +204,7 @@ public class Bin {
             serialized.put("hits", getHits());
             serialized.put("time", getTime());
             serialized.put("expiration", getExpiration());
+            serialized.put("description", getDescription());
             if (generationTime < 0) generationTime = System.currentTimeMillis() - generation;
             serialized.put("generationTime", generationTime);
             return serialized;
@@ -243,6 +257,18 @@ public class Bin {
             }
         }
 
+        public String getDescription() throws SQLException {
+            PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select description from files where id = ?");
+            statement.setString(1, id.toString());
+            ResultSet result = statement.executeQuery();
+            if (result.next()) {
+                byte[] bytes = result.getBytes("description");
+                return bytes != null ? Base64.getEncoder().encodeToString(bytes) : null;
+            } else {
+                throw new BinNotFoundException(id);
+            }
+        }
+
         public String getContent() throws SQLException {
             if (content != null) return content;
 
@@ -265,6 +291,7 @@ public class Bin {
             map.put("id", id);
             map.put("type", getType());
             map.put("name", getName());
+            map.put("description", getDescription());
             map.put("content", getContent());
             return map;
         }
