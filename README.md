@@ -53,7 +53,7 @@ POST /post
             "name": base64(aes("file-name.txt")),
             "content": base64(aes("file content")),
             "description": base64(aes("optional file description")),
-            "type": "MIME type- if not defined, view page defaults to application/octet-stream"
+            "type": base64(aes("MIME type- if not defined, view page defaults to application/octet-stream"))
         },
         ...
     ]
