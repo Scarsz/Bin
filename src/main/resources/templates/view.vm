@@ -4,7 +4,7 @@
         body {
             color: white;
             background-color: #111111;
-            font-family: Roboto;
+            font-family: Roboto, monospace;
         }
         .header {
             margin-bottom: 3px;
@@ -154,6 +154,7 @@
 
         try {
             const data = await ky.default('/v1/' + id + ".json");
+            console.log(data);
             data.json().then(response => {
                 json = response;
                 console.log(json);
@@ -237,7 +238,8 @@
             });
         } catch (e) {
             error("Failed decrypting! " + e);
-            e.printStackTrace();
+            console.log(e);
+            console.trace();
             return;
         }
     }

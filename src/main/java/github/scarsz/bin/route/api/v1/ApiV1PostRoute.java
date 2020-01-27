@@ -16,11 +16,19 @@ public class ApiV1PostRoute implements Route {
     @Override
     public Object handle(Request request, Response response) throws Exception {
         if (StringUtils.isBlank(request.body())) return halt(400, "{\"error\":{\"type\":\"BlankBodyException\", \"message\":\"No content received\"}}");
-        Map json = Server.getInstance().getGson().fromJson(request.body(), Map.class);
-//        System.out.println("input: " + ((Map) ((List) json.get("files")).get(0)).get("type"));
+        Map json = Server.getGson().fromJson(request.body(), Map.class);
 
-        long expiration = ((long) (double) json.getOrDefault("expiration", (double) Server.getInstance().getConfig().getDefaultExpiration()));
-        byte[] description = StringUtils.isNotBlank((String) json.get("description")) ? Base64.getDecoder().decode((String) json.get("description")) : null;
+        long expiration;
+        if (json.containsKey("expiration")) expiration = (long) (double) json.get("expiration");
+        else expiration = Server.getDefaultExpiration();
+
+        if (Math.abs(expiration) > Server.getMaximumExpiration()) {
+            throw new IllegalArgumentException("Maximum expiration time is " + Server.getMaximumExpiration() + " minutes");
+        }
+
+        byte[] description = StringUtils.isNotBlank((String) json.get("description"))
+                ? Base64.getDecoder().decode((String) json.get("description"))
+                : null;
 
         Bin bin = Bin.create(expiration, description);
         for (Map file : new LinkedList<>((ArrayList<Map>) json.get("files"))) {
@@ -35,9 +43,7 @@ public class ApiV1PostRoute implements Route {
         payload.put("status", "ok");
         payload.put("bin", bin.getId());
 
-//        System.out.println("after serialization: " + ((Map) ((List) bin.serialize().get("files")).get(0)).get("name"));
-
-        return Server.getInstance().getGsonPretty().toJson(payload);
+        return Server.getGsonPretty().toJson(payload);
     }
 
 }

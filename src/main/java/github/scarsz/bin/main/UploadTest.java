@@ -62,11 +62,12 @@ public class UploadTest {
         Map<String, Object> payload = new HashMap<>();
         payload.put("files", files);
         payload.put("description", b64(encrypt(key, "bins can have descriptions".getBytes(StandardCharsets.UTF_8))));
+        payload.put("expiration", 1);
         String json = GSON.toJson(payload);
         System.out.println(json);
 
-        String host = "http://localhost:6122/v1/post";
-//        String host = "https://bin.scarsz.me/v1/post";
+//        String host = "http://localhost:6122/v1/post";
+        String host = "https://bin.scarsz.me/v1/post";
         HttpRequest request = HttpRequest.post(host)
                 .userAgent("UploadTest").send(json);
         System.out.println("API produced code " + request.code());

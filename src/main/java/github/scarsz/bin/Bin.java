@@ -38,7 +38,7 @@ public class Bin {
     }
 
     public static Bin create(long expiration, byte[] description) throws SQLException {
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("INSERT INTO bins (expiration, description) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement statement = Server.getConnection().prepareStatement("INSERT INTO bins (expiration, description) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
         statement.setLong(1, expiration);
         statement.setBlob(2, description != null ? new ByteArrayInputStream(description) : null);
         statement.executeUpdate();
@@ -77,7 +77,7 @@ public class Bin {
     private Bin(UUID id) throws SQLException {
         this.id = id;
 
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select 1 from bins where id = ?");
+        PreparedStatement statement = Server.getConnection().prepareStatement("select 1 from bins where id = ?");
         statement.setString(1, id.toString());
         if (!statement.executeQuery().next()) {
             throw new BinNotFoundException(id);
@@ -95,7 +95,7 @@ public class Bin {
         if (content.length % 16 != 0) throw new IllegalArgumentException("File content must be divisible by 16");
         if (type != null && type.length % 16 != 0) throw new IllegalArgumentException("File type must be divisible by 16");
         if (description != null && description.length % 16 != 0) throw new IllegalArgumentException("File description must be divisible by 16");
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("INSERT INTO files (bin, type, name, content, description) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement statement = Server.getConnection().prepareStatement("INSERT INTO files (bin, type, name, content, description) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
         statement.setObject(1, bin);
         statement.setBlob(2, type != null ? new ByteArrayInputStream(type) : null);
         statement.setBlob(3, new ByteArrayInputStream(name));
@@ -117,7 +117,7 @@ public class Bin {
     public List<File> getFiles() throws SQLException {
         if (files.size() > 0) return files;
 
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select id from files where bin = ?");
+        PreparedStatement statement = Server.getConnection().prepareStatement("select id from files where bin = ?");
         statement.setString(1, id.toString());
         ResultSet result = statement.executeQuery();
 
@@ -130,7 +130,7 @@ public class Bin {
     }
 
     public int getHits() throws SQLException {
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select hits from bins where id = ?");
+        PreparedStatement statement = Server.getConnection().prepareStatement("select hits from bins where id = ?");
         statement.setString(1, id.toString());
         ResultSet result = statement.executeQuery();
         if (result.next()) {
@@ -141,7 +141,7 @@ public class Bin {
     }
 
     public void incrementHits() throws SQLException {
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("update bins set hits = hits + 1 where id = ?");
+        PreparedStatement statement = Server.getConnection().prepareStatement("update bins set hits = hits + 1 where id = ?");
         statement.setString(1, id.toString());
         statement.executeUpdate();
     }
@@ -158,8 +158,20 @@ public class Bin {
         return expiration;
     }
 
+    public void setLastAccess() throws SQLException {
+        setLastAccess(System.currentTimeMillis());
+    }
+    public void setLastAccess(long time) throws SQLException {
+        PreparedStatement statement = Server.getConnection().prepareStatement("update bins set lastAccess = ? where id = ?");
+        statement.setLong(1, time);
+        statement.setString(2, id.toString());
+        if (statement.executeUpdate() == 0) {
+            throw new BinNotFoundException(id);
+        }
+    }
+
     public String getDescription() throws SQLException {
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select description from bins where id = ?");
+        PreparedStatement statement = Server.getConnection().prepareStatement("select description from bins where id = ?");
         statement.setString(1, id.toString());
         ResultSet result = statement.executeQuery();
         if (result.next()) {
@@ -171,7 +183,7 @@ public class Bin {
     }
 
     private <T> T getAttribute(String column) throws SQLException {
-        PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select " + column + " from bins where id = ?");
+        PreparedStatement statement = Server.getConnection().prepareStatement("select " + column + " from bins where id = ?");
         statement.setString(1, id.toString());
         ResultSet result = statement.executeQuery();
         if (result.next()) {
@@ -186,6 +198,7 @@ public class Bin {
     }
 
     private final Map<String, Object> serialized = new HashMap<>();
+
     public Map<String, Object> serialize() throws SQLException {
         if (serialized.size() > 0) {
             serialized.put("hits", getHits()); // can't be cached because it changes
@@ -229,7 +242,7 @@ public class Bin {
         public String getType() throws SQLException {
             if (type != null) return type;
 
-            PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select type from files where id = ?");
+            PreparedStatement statement = Server.getConnection().prepareStatement("select type from files where id = ?");
             statement.setString(1, id.toString());
             ResultSet result = statement.executeQuery();
             if (result.next()) {
@@ -243,7 +256,7 @@ public class Bin {
         public String getName() throws SQLException {
             if (name != null) return name;
 
-            PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select name from files where id = ?");
+            PreparedStatement statement = Server.getConnection().prepareStatement("select name from files where id = ?");
             statement.setString(1, id.toString());
             ResultSet result = statement.executeQuery();
             if (result.next()) {
@@ -258,7 +271,7 @@ public class Bin {
         }
 
         public String getDescription() throws SQLException {
-            PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select description from files where id = ?");
+            PreparedStatement statement = Server.getConnection().prepareStatement("select description from files where id = ?");
             statement.setString(1, id.toString());
             ResultSet result = statement.executeQuery();
             if (result.next()) {
@@ -272,7 +285,7 @@ public class Bin {
         public String getContent() throws SQLException {
             if (content != null) return content;
 
-            PreparedStatement statement = Server.getInstance().getConnection().prepareStatement("select content from files where id = ?");
+            PreparedStatement statement = Server.getConnection().prepareStatement("select content from files where id = ?");
             statement.setString(1, id.toString());
             ResultSet result = statement.executeQuery();
             if (result.next()) {

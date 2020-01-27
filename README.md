@@ -45,7 +45,7 @@ POST /post
     // in other words, the "encrypted data" should be the IV plus the actual encrypted data
     // and please- do not use the same IV for every encryption. it should be randomly generated for every encryption.
 
-    "description": "optional bin description",
+    "description": base64(aes("optional bin description")),
     "expiration": -43200, // optional expiration in minutes; negative number = minutes since creation,
                           //                                 positive number = minutes since last access
     "files": [

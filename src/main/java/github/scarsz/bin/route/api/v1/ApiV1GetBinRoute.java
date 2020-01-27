@@ -23,6 +23,7 @@ public class ApiV1GetBinRoute implements Route {
 
         Bin bin = Bin.forRequest(request);
         bin.incrementHits();
+        bin.setLastAccess();
         Map<String, Object> serialized = bin.serialize();
         serialized.put("server", serverInfo);
 
