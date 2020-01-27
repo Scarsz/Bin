@@ -154,7 +154,6 @@
 
         try {
             const data = await ky.default('/v1/' + id + ".json");
-            console.log(data);
             data.json().then(response => {
                 json = response;
                 console.log(json);
@@ -237,10 +236,8 @@
                 return;
             });
         } catch (e) {
-            error("Failed decrypting! " + e);
-            console.log(e);
-            console.trace();
-            return;
+            error("Failed retrieving data! HTTP " + e.response.status);
+            document.documentElement.innerHTML = await e.response.text();
         }
     }
 </script>
