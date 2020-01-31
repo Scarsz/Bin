@@ -50,7 +50,7 @@ public class Bin {
         }
     }
 
-    public static Bin retrieve(UUID id) {
+    public static Bin retrieve(UUID id) throws BinNotFoundException {
         return CACHE.computeIfAbsent(id, (v) -> {
             try {
                 return new Bin(id);
