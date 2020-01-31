@@ -56,14 +56,7 @@ public class Bin {
     }
 
     public static Bin retrieve(UUID id) throws BinNotFoundException {
-        return CACHE.computeIfAbsent(id, (v) -> {
-            try {
-                return new Bin(id);
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return null;
-            }
-        });
+        return CACHE.computeIfAbsent(id, (v) -> new Bin(id));
     }
 
     public static Stream<Bin> retrieveAll() throws SQLException {
@@ -88,13 +81,20 @@ public class Bin {
         return Bin.retrieve(uuid);
     }
 
-    private Bin(UUID id) throws SQLException {
+    private Bin(UUID id) throws BinNotFoundException {
         this.id = id;
 
-        PreparedStatement statement = Server.getConnection().prepareStatement("select 1 from `bins` where `id` = ?");
-        statement.setString(1, id.toString());
-        if (!statement.executeQuery().next()) {
-            throw new BinNotFoundException(id);
+        if (!exists()) throw new BinNotFoundException(id);
+    }
+
+    public boolean exists() {
+        try {
+            PreparedStatement statement = Server.getConnection().prepareStatement("select 1 from `bins` where `id` = ?");
+            statement.setString(1, id.toString());
+            return statement.executeQuery().next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

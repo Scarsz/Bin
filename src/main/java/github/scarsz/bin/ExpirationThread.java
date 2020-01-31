@@ -1,7 +1,5 @@
 package github.scarsz.bin;
 
-import github.scarsz.bin.exception.BinNotFoundException;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,17 +13,13 @@ public class ExpirationThread extends Thread {
         try {
             Server.getConnection().setAutoCommit(false);
 
-            ResultSet result = Server.getConnection().prepareStatement("select distinct `bin` from `files`").executeQuery();
-            while (result.next()) {
-                UUID uuid = (UUID) result.getObject("bin");
-
-                try {
-                    Bin.retrieve(uuid);
-                } catch (BinNotFoundException e) {
-                    PreparedStatement statement = Server.getConnection().prepareStatement("delete from `files` where `bin` = ?");
-                    statement.setObject(1, uuid);
-                    statement.executeUpdate();
-                }
+            try (PreparedStatement statement = Server.getConnection().prepareStatement("delete from `files` where `bin` not in (?)")) {
+                UUID[] existing = Bin.retrieveAll().map(Bin::getId).toArray(UUID[]::new);
+                statement.setArray(1, Server.getConnection().createArrayOf("UUID", existing));
+                int deleted = statement.executeUpdate();
+                Server.log("Deleted " + deleted + " orphaned files");
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
 
             Server.getConnection().setAutoCommit(true);
