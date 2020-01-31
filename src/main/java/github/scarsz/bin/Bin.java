@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static spark.Spark.halt;
 
@@ -59,6 +60,15 @@ public class Bin {
                 return null;
             }
         });
+    }
+
+    public static Stream<Bin> retrieveAll() throws SQLException {
+        PreparedStatement statement = Server.getConnection().prepareStatement("select `id` from `bins`");
+        ResultSet result = statement.executeQuery();
+        Set<UUID> uuids = new HashSet<>();
+        while (result.next()) uuids.add((UUID) result.getObject("id"));
+        return Stream.of(uuids.toArray(new UUID[0]))
+                .map(Bin::retrieve);
     }
 
     private final UUID id;
