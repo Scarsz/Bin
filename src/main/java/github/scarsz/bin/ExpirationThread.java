@@ -1,13 +1,38 @@
 package github.scarsz.bin;
 
+import github.scarsz.bin.exception.BinNotFoundException;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class ExpirationThread extends Thread {
 
     @Override
     public void run() {
+        // clean up orphaned files
+        try {
+            Server.getConnection().setAutoCommit(false);
+
+            ResultSet result = Server.getConnection().prepareStatement("select distinct `bin` from `files`").executeQuery();
+            while (result.next()) {
+                UUID uuid = (UUID) result.getObject("bin");
+
+                try {
+                    Bin.retrieve(uuid);
+                } catch (BinNotFoundException e) {
+                    PreparedStatement statement = Server.getConnection().prepareStatement("delete from `files` where `bin` = ?");
+                    statement.setObject(1, uuid);
+                    statement.executeUpdate();
+                }
+            }
+
+            Server.getConnection().setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         while (!isInterrupted()) {
             try {
                 PreparedStatement statement = Server.getConnection().prepareStatement(
