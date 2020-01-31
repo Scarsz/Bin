@@ -20,11 +20,15 @@ import static spark.Spark.halt;
 
 public class Bin {
 
-    private static final ExpiringMap<UUID, Bin> CACHE = ExpiringMap.builder()
-            .maxSize(100)
-            .expiration(1, TimeUnit.DAYS)
-            .expirationPolicy(ExpirationPolicy.ACCESSED)
-            .build();
+    private static ExpiringMap<UUID, Bin> CACHE;
+
+    public static void setCache(int maxSize, int expiration, TimeUnit expirationUnit) {
+        CACHE = ExpiringMap.builder()
+                .maxSize(maxSize)
+                .expiration(expiration, expirationUnit)
+                .expirationPolicy(ExpirationPolicy.ACCESSED)
+                .build();
+    }
 
     public static Bin create() throws SQLException {
         return create(TimeUnit.DAYS.toMinutes(30), null);

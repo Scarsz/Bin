@@ -71,6 +71,8 @@ public class Server {
                 "    constraint files_pk primary key (id)" +
                 ")").executeUpdate();
 
+        Bin.setCache(config.getInt("Cache"), 1, TimeUnit.DAYS);
+
         expirationThread = new ExpirationThread();
         expirationThread.start();
 

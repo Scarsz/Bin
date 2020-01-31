@@ -17,3 +17,9 @@ Expiration:
 
   # Minutes between processing bin expirations
   Cycle: 5
+
+# Bin caching
+#
+# When a bin is requested, it will be served from the cache
+# if possible to avoid database calls, increasing speed
+Cache: 10000
