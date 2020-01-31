@@ -110,6 +110,23 @@ public class Bin {
         }
     }
 
+    public boolean delete() throws SQLException {
+        return delete(this.id);
+    }
+
+    public static boolean delete(UUID bin) throws SQLException {
+        Server.getConnection().setAutoCommit(false);
+        PreparedStatement statement = Server.getConnection().prepareStatement("delete from `bins` where `id` = ?");
+        statement.setObject(1, bin);
+        boolean existed = statement.executeUpdate() != 0;
+
+        statement = Server.getConnection().prepareStatement("delete from `files` where `bin` = ?");
+        statement.setObject(1, bin);
+
+        Server.getConnection().setAutoCommit(true);
+        return existed;
+    }
+
     public UUID getId() {
         return id;
     }
