@@ -20,7 +20,7 @@ public class ExpirationThread extends Thread {
                 Server.log("Deleted " + deleted + " orphaned files");
             } catch (SQLException e) {
                 e.printStackTrace();
-            }
+            } catch (Exception ignored) {}
 
             Server.getConnection().setAutoCommit(true);
         } catch (SQLException e) {
