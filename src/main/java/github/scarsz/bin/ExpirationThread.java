@@ -43,11 +43,17 @@ public class ExpirationThread extends Thread {
                 ResultSet result = statement.executeQuery();
                 if (result.isBeforeFirst()) {
                     Server.getConnection().setAutoCommit(false);
-                    PreparedStatement delete = Server.getConnection().prepareStatement("delete from bins where id = ?");
+                    PreparedStatement binDelete = Server.getConnection().prepareStatement("delete from bins where id = ?");
+                    PreparedStatement filesDelete = Server.getConnection().prepareStatement("delete from files where bin = ?");
                     while (result.next()) {
-                        Server.log("Bin " + result.getObject("id") + " expired, had " + result.getInt("hits") + " hits");
-                        delete.setObject(1, result.getObject(1));
-                        delete.executeUpdate();
+                        UUID bin = (UUID) result.getObject("id");
+                        int hits = result.getInt("hits");
+
+                        Server.log("Bin " + bin + " expired, had " + hits + " hits");
+                        binDelete.setObject(1, bin);
+                        binDelete.executeUpdate();
+                        filesDelete.setObject(1, bin);
+                        filesDelete.executeUpdate();
                     }
                     Server.getConnection().setAutoCommit(true);
                 }
