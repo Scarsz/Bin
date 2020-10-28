@@ -1,5 +1,7 @@
 <html>
 <head>
+    <title>Bin Viewer</title>
+    <meta name="viewport" content="width=500"/>
     <style>
         body {
             color: white;
@@ -21,10 +23,20 @@
         audio {
             padding: 0.5em;
         }
+        @media only screen and (max-width : 999px) {
+            audio, .file {
+                width: 95%;
+                padding: 0 2.5%;
+            }
+        }
+        @media only screen and (min-width : 1000px) {
+            audio, .file {
+                width: 80%;
+                padding: 0 10%;
+            }
+        }
         audio, .file {
             display: inline-block;
-            width: 80%;
-            padding: 0 10%;
         }
         .file audio:nth-child(4), .file pre:nth-child(4) {
             border: 1px solid white;
@@ -210,9 +222,12 @@
                     if (file.type != null) {
                         if (file.type.startsWith('text/')) {
                             // {"whitelist": {}, "stripIgnoreTag": true}
-                            div.html(header + "<pre><code>" + aesjs.utils.utf8.fromBytes(file.content) + "</code></pre>");
+                            let lastDot = file.name.lastIndexOf('.');
+                            let fileExtension = lastDot !== -1 ? file.name.substr(lastDot + 1, file.name.length) : null;
+                            div.html(header + "<pre><code class=\"" + (fileExtension != null && fileExtension.length != 0 ? "lang-" + fileExtension : "plaintext") + " hljs\">"
+                                    + filterXSS(aesjs.utils.utf8.fromBytes(file.content)) + "</code></pre>");
                         } else if (file.type.startsWith('audio/')) {
-                            div.html(header + "<audio controls src=\"data:" + filterXSS(file.type) + ";base64," + base64js.fromByteArray(file.content) + "\" /></code></pre>");
+                            div.html(header + "<audio controls src=\"data:" + filterXSS(file.type) + ";base64," + filterXSS(base64js.fromByteArray(file.content)) + "\" /></code></pre>");
                         } else {
                             known = false;
                         }
@@ -221,15 +236,18 @@
                     }
 
                     if (!known) {
-                        div.html(header + "<pre>binary file, " + file.content.length + " bytes</pre>");
+                        div.html(header + "<pre style=\"padding:3px;\">binary file, " + file.content.length + " bytes</pre>");
                     }
 
                     $("#container").append(div);
                 }
 
                 document.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightBlock(block);
-                    hljs.lineNumbersBlock(block, { singleLine: true });
+                    // let the user see content without highlighting (incase the content is huge highlighting takes long)
+                    setTimeout(function () {
+                        hljs.highlightBlock(block);
+                        hljs.lineNumbersBlock(block, { singleLine: true });
+                    }, 1);
                 });
             }).catch(reason => {
                 error("Failed decrypting! " + reason);

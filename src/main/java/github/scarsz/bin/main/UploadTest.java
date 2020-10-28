@@ -49,7 +49,7 @@ public class UploadTest {
                 "In at sapien sit amet lacus tincidunt ullamcorper non id nulla.\n" +
                 "Proin quis ligula quis dui facilisis lobortis sed lacinia neque.\n" +
                 "Nam et est laoreet, imperdiet nunc semper, ornare augue.\n" +
-                "Nunc fermentum nulla vel turpis ornare porttitor.").getBytes(StandardCharsets.UTF_8))));
+                "Nunc fermentum nulla vel turpis ornare porttitor.\n\nhaha <xss goes=\"brr\">").getBytes(StandardCharsets.UTF_8))));
         file.put("type", b64(encrypt(key, "text/plain".getBytes(StandardCharsets.UTF_8))));
         files.add(file);
         file = new HashMap<>();
