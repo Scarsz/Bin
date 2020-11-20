@@ -150,7 +150,7 @@ public class Server {
 
         try {
             synchronized (connection) {
-                connection.rollback();
+                connection.setAutoCommit(true);
                 connection.close();
             }
         } catch (SQLException e) {
