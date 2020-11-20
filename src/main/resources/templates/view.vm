@@ -225,8 +225,10 @@
                             // {"whitelist": {}, "stripIgnoreTag": true}
                             let lastDot = file.name.lastIndexOf('.');
                             let fileExtension = lastDot !== -1 ? file.name.substr(lastDot + 1, file.name.length) : null;
-                            div.html(header + "<pre><code class=\"" + (fileExtension != null && fileExtension.length != 0 ? "lang-" + fileExtension : "plaintext") + " hljs\">"
-                                    + filterXSS(aesjs.utils.utf8.fromBytes(file.content)) + "</code></pre>");
+                            div.html(
+                                header + "<pre><code class=\"" + (fileExtension != null && fileExtension.length != 0 ? fileExtension : "plaintext") + " hljs\">"
+                                       + filterXSS(aesjs.utils.utf8.fromBytes(file.content)) + "</code></pre>"
+                            );
                         } else if (file.type.startsWith('audio/')) {
                             div.html(header + "<audio controls src=\"data:" + filterXSS(file.type) + ";base64," + filterXSS(base64js.fromByteArray(file.content)) + "\" /></code></pre>");
                         } else {
@@ -244,7 +246,7 @@
                 }
 
                 document.querySelectorAll('pre code').forEach((block) => {
-                    // let the user see content without highlighting (incase the content is huge highlighting takes long)
+                    // let the user see content without highlighting (in case the content is huge highlighting takes long)
                     setTimeout(function () {
                         hljs.highlightBlock(block);
                         hljs.lineNumbersBlock(block, { singleLine: true });
@@ -252,7 +254,6 @@
                 });
             }).catch(reason => {
                 error("Failed decrypting! " + reason);
-                return;
             });
         } catch (e) {
             error("Failed retrieving data! HTTP " + e.response.status);
