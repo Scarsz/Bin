@@ -172,7 +172,7 @@
                 bin.id = json.id;
                 bin.hits = json.hits;
                 bin.time = json.time;
-                bin.description = aesjs.utils.utf8.fromBytes(decrypt(keyBytes, json.description));
+                bin.description = json.description ? aesjs.utils.utf8.fromBytes(decrypt(keyBytes, json.description)) : null;
 
                 info("Received " + json.files.length + " files");
                 document.querySelector("#status").innerHTML = "Received " + json.files.length + " files";
