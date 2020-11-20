@@ -127,8 +127,9 @@
     }
     function download(i) {
         let file = bin.files[i];
-        var blob = new Blob([file.content], {type: file.type});
-        saveAs(blob, file.name);
+        let blob = new Blob([file.content], {type: file.type});
+        let name = file.name.replace(/^.*[\\\/]/, '') // directory/file.name -> file.name
+        saveAs(blob, name);
     }
     // function raw(i) {
     //     let file = bin.files[i];
